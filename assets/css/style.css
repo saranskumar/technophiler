@@ -2,7 +2,123 @@
 # General
 --------------------------------------------------------------*/
 
+body {
+  font-family: Arial, sans-serif;
+  background-color: #000000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  padding: 20px;
+}
+
+#chat-container {
+  background-color: #000000;
+  border-radius: 12px;
   
+  padding: 20px;
+  width: 100%;
+  height: 80%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 8px 0;
+  display: inline-block;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background-color: #007bff;
+  color: white;
+  align-self: flex-end;
+  border-bottom-left-radius: 0;
+}
+
+.ai-message {
+  background-color: #9e5aed;
+  color: white;
+  align-self: flex-start;
+  border-bottom-right-radius: 0;
+}
+
+.inputs{
+  height: min-content;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  gap: 20px;
+}
+#message-input, #send-button {
+  padding: 12px;
+  border-radius: 25px;
+  margin-top: 10px;
+  border: 1px solid #555;
+  background-color: #000000;
+  color: white;
+  font-size: 14px;
+  display:inline-flexbox;
+  
+}
+
+#message-input{
+  width: 80%;
+}
+
+#send-button {
+  background-color: #8d45df;
+  cursor: pointer;
+  max-width: 45px;
+  width: 20%;
+}
+
+#send-button:hover {
+  background-color: #2700e9;
+}
+
+.loading {
+  display: none;
+  color: #f1c40f;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Scrollbar styles */
+#chat-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#chat-container::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 10px;
+}
+
+#chat-container::-webkit-scrollbar-track {
+  background-color: #1c1c1c;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  #chat-container {
+      padding: 15px;
+      height: 350px;
+      max-width: 100%;
+  }
+
+  #message-input, #send-button {
+      padding: 10px;
+      font-size: 14px;
+  }
+}
 .instagram:hover .bi-instagram {
   color: #E1306C; /* Instagram color */
 }
