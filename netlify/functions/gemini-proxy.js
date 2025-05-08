@@ -20,7 +20,7 @@ exports.handler = async (event) => {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,6 +33,18 @@ exports.handler = async (event) => {
           safetySettings: [
             {
               category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH", 
+              threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_ONLY_HIGH"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
               threshold: "BLOCK_ONLY_HIGH"
             }
           ],
@@ -60,8 +72,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       body: JSON.stringify({ 
-        response: generatedText,
-        fullResponse: responseData // Optional: for debugging
+        response: generatedText
       }),
       headers: { 
         'Content-Type': 'application/json',
