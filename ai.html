@@ -124,21 +124,10 @@
 }); 
 </script>
 <script type="module">
-    
-  import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
-
-  // Replace with your actual API key
-  const API_KEY = 'AIzaSyAGqNQMEm7DaM0dvtbfG7KddmzQUJ6yISk';
-  const genAI = new GoogleGenerativeAI(API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
   const chatContainer = document.getElementById('chat-container');
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-button');
-  const clearButton = document.getElementById('clear-button');  // Button to clear the chat
-
-  // Start a new chat session
-  let chatSession = model.startChat();
+  const clearButton = document.getElementById('clear-button');
 
   // Function to add a message to the chat container
   function addMessage(message, sender) {
@@ -149,7 +138,7 @@
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
-  // Function to add a loading message to the chat container
+  // Function to add a loading message
   function addLoadingMessage() {
     const loadingMessage = document.createElement('div');
     loadingMessage.textContent = 'AI is typing...';
@@ -159,16 +148,18 @@
     return loadingMessage;
   }
 
-  // Function to save the chat to localStorage
+  // Function to save chat to localStorage
   function saveChatToLocalStorage() {
-    const messages = Array.from(chatContainer.children).map(child => ({
-      text: child.textContent,
-      sender: child.classList.contains('user-message') ? 'user' : 'ai'
-    }));
+    const messages = Array.from(chatContainer.children)
+      .filter(el => !el.classList.contains('loading-message'))
+      .map(child => ({
+        text: child.textContent,
+        sender: child.classList.contains('user-message') ? 'user' : 'ai'
+      }));
     localStorage.setItem('chatHistory', JSON.stringify(messages));
   }
 
-  // Function to load the chat from localStorage
+  // Function to load chat from localStorage
   function loadChatFromLocalStorage() {
     const savedMessages = JSON.parse(localStorage.getItem('chatHistory'));
     if (savedMessages) {
@@ -176,43 +167,47 @@
     }
   }
 
-  // Function to send a message
+  // Function to send message via Netlify function
   async function sendMessage() {
     const userMessage = messageInput.value.trim();
     if (!userMessage) return;
 
-    // Add user message to chat
     addMessage(userMessage, 'user');
     messageInput.value = '';
-
-    // Add loading message for AI response
+    
     const loadingMessage = addLoadingMessage();
 
     try {
-      // Send message to Gemini and get response
-      const result = await chatSession.sendMessage(userMessage);
-      const aiMessage = result.response.text();
+      const response = await fetch('/.netlify/functions/gemini-proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage })
+      });
 
-      // Remove the loading message
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      const data = await response.json();
       loadingMessage.remove();
-
-      // Add AI's response to chat
+      
+      // Extract the AI response - adjust based on your proxy's response structure
+      const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                       "Sorry, I couldn't process that request.";
+      
       addMessage(aiMessage, 'ai');
-
-      // Save the updated chat to localStorage
       saveChatToLocalStorage();
     } catch (error) {
       console.error('Error:', error);
-      // Remove loading message in case of error
       loadingMessage.remove();
       addMessage('Sorry, there was an error processing your message.', 'ai');
     }
   }
 
-  // Function to clear chat and localStorage
+  // Function to clear chat
   function clearChat() {
-    localStorage.removeItem('chatHistory');  // Clear chat from localStorage
-    chatContainer.innerHTML = '';  // Clear chat from the UI
+    localStorage.removeItem('chatHistory');
+    chatContainer.innerHTML = '';
   }
 
   // Event listeners
@@ -220,12 +215,10 @@
   messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
   });
-
   clearButton.addEventListener('click', clearChat);
 
-  // Load saved chat history on page load
+  // Load saved chat on page load
   window.addEventListener('load', loadChatFromLocalStorage);
-
 </script>
  
 </body>
