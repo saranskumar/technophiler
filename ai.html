@@ -123,102 +123,182 @@
   }); 
 }); 
 </script>
+
 <script type="module">
   const chatContainer = document.getElementById('chat-container');
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-button');
-  const clearButton = document.getElementById('clear-button');
+  
+  // Create clear button if it doesn't exist
+  let clearButton = document.getElementById('clear-button');
+  if (!clearButton) {
+    clearButton = document.createElement('button');
+    clearButton.id = 'clear-button';
+    clearButton.textContent = 'Clear Chat';
+    clearButton.classList.add('btn', 'btn-secondary', 'mt-2', 'ms-2');
+    document.querySelector('.inputs').appendChild(clearButton);
+  }
 
-  // Function to add a message to the chat container
+  // Enhanced message styling
   function addMessage(message, sender) {
     const messageElement = document.createElement('div');
-    messageElement.textContent = message;
-    messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+    messageElement.classList.add('d-flex', 'mb-3');
+    
+    const bubble = document.createElement('div');
+    bubble.classList.add(
+      'p-3', 
+      'rounded-4',
+      'shadow-sm',
+      sender === 'user' ? 'bg-primary text-white ms-auto' : 'bg-light me-auto'
+    );
+    bubble.style.maxWidth = '80%';
+    bubble.style.wordBreak = 'break-word';
+    
+    // Add robot icon for AI messages
+    if (sender === 'ai') {
+      const icon = document.createElement('i');
+      icon.classList.add('bi', 'bi-robot', 'me-2');
+      bubble.prepend(icon);
+    }
+    
+    bubble.textContent = message;
+    messageElement.appendChild(bubble);
     chatContainer.appendChild(messageElement);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Smooth scroll to bottom
+    chatContainer.scrollTo({
+      top: chatContainer.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 
-  // Function to add a loading message
+  // Enhanced loading indicator
   function addLoadingMessage() {
-    const loadingMessage = document.createElement('div');
-    loadingMessage.textContent = 'AI is typing...';
-    loadingMessage.classList.add('loading-message');
-    chatContainer.appendChild(loadingMessage);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    return loadingMessage;
+    const loadingElement = document.createElement('div');
+    loadingElement.classList.add('d-flex', 'mb-3');
+    
+    const loadingBubble = document.createElement('div');
+    loadingBubble.classList.add('p-3', 'rounded-4', 'bg-light', 'me-auto');
+    loadingBubble.style.maxWidth = '80%';
+    
+    const spinner = document.createElement('div');
+    spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-secondary', 'me-2');
+    spinner.setAttribute('role', 'status');
+    
+    const text = document.createElement('span');
+    text.textContent = 'AI is thinking...';
+    
+    loadingBubble.appendChild(spinner);
+    loadingBubble.appendChild(text);
+    loadingElement.appendChild(loadingBubble);
+    loadingElement.id = 'loading-message';
+    chatContainer.appendChild(loadingElement);
+    
+    chatContainer.scrollTo({
+      top: chatContainer.scrollHeight,
+      behavior: 'smooth'
+    });
+    
+    return loadingElement;
   }
 
-  // Function to save chat to localStorage
+  // Save chat with timestamps
   function saveChatToLocalStorage() {
-    const messages = Array.from(chatContainer.children)
-      .filter(el => !el.classList.contains('loading-message'))
-      .map(child => ({
-        text: child.textContent,
-        sender: child.classList.contains('user-message') ? 'user' : 'ai'
+    const messages = Array.from(chatContainer.querySelectorAll('.d-flex'))
+      .filter(el => el.id !== 'loading-message')
+      .map(el => ({
+        text: el.textContent.replace('AI is thinking...', '').trim(),
+        sender: el.querySelector('.bg-primary') ? 'user' : 'ai',
+        time: new Date().toISOString()
       }));
     localStorage.setItem('chatHistory', JSON.stringify(messages));
   }
 
-  // Function to load chat from localStorage
+  // Load chat with welcome message if empty
   function loadChatFromLocalStorage() {
     const savedMessages = JSON.parse(localStorage.getItem('chatHistory'));
-    if (savedMessages) {
+    if (savedMessages?.length > 0) {
       savedMessages.forEach(msg => addMessage(msg.text, msg.sender));
+    } else {
+      addMessage("Hello! I'm your AI assistant. How can I help you today?", 'ai');
     }
   }
 
-  // Function to send message via Netlify function
+  // Enhanced send function with better error handling
   async function sendMessage() {
     const userMessage = messageInput.value.trim();
     if (!userMessage) return;
 
+    // Add user message and clear input
     addMessage(userMessage, 'user');
     messageInput.value = '';
-    
-    const loadingMessage = addLoadingMessage();
+    sendButton.disabled = true;
+    messageInput.disabled = true;
+
+    const loadingElement = addLoadingMessage();
 
     try {
+      console.log('Sending message to function');
       const response = await fetch('/.netlify/functions/gemini-proxy', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage })
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
-      
       const data = await response.json();
-      loadingMessage.remove();
-      
-      // Extract the AI response - adjust based on your proxy's response structure
-      const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-                       "Sorry, I couldn't process that request.";
-      
+      console.log('Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Request failed');
+      }
+
+      loadingElement.remove();
+      const aiMessage = data.response || data.text || "I didn't get a response.";
       addMessage(aiMessage, 'ai');
       saveChatToLocalStorage();
+      
     } catch (error) {
       console.error('Error:', error);
-      loadingMessage.remove();
-      addMessage('Sorry, there was an error processing your message.', 'ai');
+      loadingElement.remove();
+      addMessage(`Error: ${error.message || 'Failed to process request'}`, 'ai');
+    } finally {
+      sendButton.disabled = false;
+      messageInput.disabled = false;
+      messageInput.focus();
     }
   }
 
-  // Function to clear chat
+  // Clear chat with confirmation
   function clearChat() {
-    localStorage.removeItem('chatHistory');
-    chatContainer.innerHTML = '';
+    if (chatContainer.children.length > 0 && confirm('Clear all chat history?')) {
+      chatContainer.innerHTML = '';
+      localStorage.removeItem('chatHistory');
+      addMessage("Chat cleared. How can I help you now?", 'ai');
+    }
   }
 
-  // Event listeners
+  // Event listeners with better UX
   sendButton.addEventListener('click', sendMessage);
-  messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
+  
+  messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   });
-  clearButton.addEventListener('click', clearChat);
 
-  // Load saved chat on page load
-  window.addEventListener('load', loadChatFromLocalStorage);
+  clearButton.addEventListener('click', clearChat);
+  
+  // Input validation
+  messageInput.addEventListener('input', () => {
+    sendButton.disabled = messageInput.value.trim() === '';
+  });
+
+  // Initialize chat
+  document.addEventListener('DOMContentLoaded', () => {
+    loadChatFromLocalStorage();
+    messageInput.focus();
+  });
 </script>
  
 </body>
