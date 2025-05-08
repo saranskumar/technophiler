@@ -1,8 +1,10 @@
 {
-  "name": "netlify-functions",
+  "name": "technophiler",
   "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'Build complete'"
+  },
   "dependencies": {
-    "@google/generative-ai": "^0.3.0",
-    "node-fetch": "^3.3.0"
+    "@google/generative-ai": "^0.3.0"
   }
 }

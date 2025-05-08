@@ -1,10 +1,10 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install && echo 'Build complete'"
   publish = "."
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
 
 [functions]
-  node_bundler = "esbuild"
   directory = "netlify/functions"
+  node_bundler = "esbuild"
