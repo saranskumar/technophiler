@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <title>Technophiler - Services</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header">
+    <div class="container">
+      <h1> tech<a href="https://trex-runner.com/" target="_blank">no</a>philer</h1>
+     
+      <nav id="navbar" class="navbar">
+         <ul>
+          <li><a class="nav-link active" href="/index.html">Home</a></li>
+          <li><a class="nav-link" href="/about.html">About</a></li>
+          <li><a class="nav-link" href="/gallery.html">Gallery</a></li>
+          <li><a class="nav-link" href="/services.html">Projects</a></li>
+          <li><a class="nav-link" href="/contact.html">Contact</a></li>
+        </ul>
+      </nav><!-- .navbar -->
+    </div>
+  </header><!-- End Header -->
+ 
+  <!-- ======= Services Section ======= -->
+         <section id="ai" class="ai"> 
+            <div id="chat-container"></div>
+             <div class="inputs">
+                 <input type="text" id="message-input" placeholder="Type your message...">
+                  <button id="send-button">➤</button>
+             </div>
+         </section>
+
+
+  <section id="services" class="services">
+    <div class="container">
+
+      <div class="section-title">
+        <h2>Projects</h2>
+        <p>My Projects</p>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-4 col-md-6  align-items-stretch">
+          <div class="icon-box"><a href="/ai.html"target="blank" >
+            <div class="icon"><i class="bi bi-robot"></i></div>
+            <h4>Chat bot </h4>
+            <p>Ai integrated chat bot using gemini.</p></a>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6  align-items-stretch">
+          <div class="icon-box"><a href="https://github.com/saranskumar/assist"target="_blank" >
+              <div class="icon"><i class="bi bi-house"></i></div>
+              <h4>Personal assistant </h4>
+              <p>Personal assistant using python, gemini api.(still developing) </p></a>
+          </div>
+          
+         
+
+    </div>
+  </section><!-- End Services Section -->
+  
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/purecounter/purecounter.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Main JS File -->
+  <script src="assets/js/main.js"></script>
+  
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Immediately show the contact section (override main.js behavior)
+    const contactSection = document.getElementById('services');
+    if (contactSection) {
+      contactSection.classList.add('section-show');
+    }
+
+    // Set the contact link as active
+    const navLinks = document.querySelectorAll('#navbar .nav-link');
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#services' || 
+          link.getAttribute('href').endsWith('services.html')) {
+        link.classList.add('active');
+      }
+
+    // Modify the navbar click handler specifically for the contact page
+    const navbar = document.getElementById('navbar');
+    if (navbar) {
+      navbar.addEventListener('click', function(e) {
+        const navLink = e.target.closest('.nav-link');
+        if (navLink) {
+          // If clicking on Contact link while already on contact page
+          if (navLink.getAttribute('href') === '#services' || 
+              navLink.getAttribute('href').endsWith('services.html')) {
+            e.preventDefault();
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          }
+          // For mobile, close the navbar after click
+          if (navbar.classList.contains('navbar-mobile')) {
+            navbar.classList.remove('navbar-mobile');
+            const navbarToggle = document.querySelector('.mobile-nav-toggle');
+            if (navbarToggle) {
+              navbarToggle.classList.toggle('bi-list');
+              navbarToggle.classList.toggle('bi-x');
+            }
+          }
+        }
+      });
+    }
+
+    // Ensure header is in the correct state
+    const header = document.getElementById('header');
+    if (header) {
+      header.classList.add('header-top');
+    }
+  }); 
+}); 
+</script>
+
+ 
+</body>
+</html>

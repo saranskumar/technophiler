@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <title>Technophiler - Chatbot</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header">
+    <div class="container">
+      <h1> tech<a href="https://trex-runner.com/" target="_blank">no</a>philer</h1>
+     
+      <nav id="navbar" class="navbar">
+         <ul>
+          <li><a class="nav-link active" href="/index.html">Home</a></li>
+          <li><a class="nav-link" href="/about.html">About</a></li>
+          <li><a class="nav-link" href="/gallery.html">Gallery</a></li>
+          <li><a class="nav-link" href="/services.html">Projects</a></li>
+          <li><a class="nav-link" href="/contact.html">Contact</a></li>
+        </ul>
+      </nav><!-- .navbar -->
+    </div>
+  </header><!-- End Header -->
+ 
+  <!-- ======= Services Section ======= -->
+         <section id="ai" class="ai"> 
+            <div id="chat-container"></div>
+             <div class="inputs">
+                 <input type="text" id="message-input" placeholder="Type your message...">
+                  <button id="send-button">➤</button>
+             </div>
+  </section><!-- End Services Section -->
+  
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/purecounter/purecounter.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Main JS File -->
+  <script src="assets/js/main.js"></script>
+  
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Immediately show the contact section (override main.js behavior)
+    const contactSection = document.getElementById('ai');
+    if (contactSection) {
+      contactSection.classList.add('section-show');
+    }
+
+    // Set the contact link as active
+    const navLinks = document.querySelectorAll('#navbar .nav-link');
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#ai' || 
+          link.getAttribute('href').endsWith('ai.html')) {
+        link.classList.add('active');
+      }
+
+    // Modify the navbar click handler specifically for the contact page
+    const navbar = document.getElementById('navbar');
+    if (navbar) {
+      navbar.addEventListener('click', function(e) {
+        const navLink = e.target.closest('.nav-link');
+        if (navLink) {
+          // If clicking on Contact link while already on contact page
+          if (navLink.getAttribute('href') === '#ai' || 
+              navLink.getAttribute('href').endsWith('ai.html')) {
+            e.preventDefault();
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          }
+          // For mobile, close the navbar after click
+          if (navbar.classList.contains('navbar-mobile')) {
+            navbar.classList.remove('navbar-mobile');
+            const navbarToggle = document.querySelector('.mobile-nav-toggle');
+            if (navbarToggle) {
+              navbarToggle.classList.toggle('bi-list');
+              navbarToggle.classList.toggle('bi-x');
+            }
+          }
+        }
+      });
+    }
+
+    // Ensure header is in the correct state
+    const header = document.getElementById('header');
+    if (header) {
+      header.classList.add('header-top');
+    }
+  }); 
+}); 
+</script>
+<script type="module">
+    
+  import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
+
+  // Replace with your actual API key
+  const API_KEY = 'AIzaSyAGqNQMEm7DaM0dvtbfG7KddmzQUJ6yISk';
+  const genAI = new GoogleGenerativeAI(API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+  const chatContainer = document.getElementById('chat-container');
+  const messageInput = document.getElementById('message-input');
+  const sendButton = document.getElementById('send-button');
+  const clearButton = document.getElementById('clear-button');  // Button to clear the chat
+
+  // Start a new chat session
+  let chatSession = model.startChat();
+
+  // Function to add a message to the chat container
+  function addMessage(message, sender) {
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+    chatContainer.appendChild(messageElement);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  // Function to add a loading message to the chat container
+  function addLoadingMessage() {
+    const loadingMessage = document.createElement('div');
+    loadingMessage.textContent = 'AI is typing...';
+    loadingMessage.classList.add('loading-message');
+    chatContainer.appendChild(loadingMessage);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return loadingMessage;
+  }
+
+  // Function to save the chat to localStorage
+  function saveChatToLocalStorage() {
+    const messages = Array.from(chatContainer.children).map(child => ({
+      text: child.textContent,
+      sender: child.classList.contains('user-message') ? 'user' : 'ai'
+    }));
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+  }
+
+  // Function to load the chat from localStorage
+  function loadChatFromLocalStorage() {
+    const savedMessages = JSON.parse(localStorage.getItem('chatHistory'));
+    if (savedMessages) {
+      savedMessages.forEach(msg => addMessage(msg.text, msg.sender));
+    }
+  }
+
+  // Function to send a message
+  async function sendMessage() {
+    const userMessage = messageInput.value.trim();
+    if (!userMessage) return;
+
+    // Add user message to chat
+    addMessage(userMessage, 'user');
+    messageInput.value = '';
+
+    // Add loading message for AI response
+    const loadingMessage = addLoadingMessage();
+
+    try {
+      // Send message to Gemini and get response
+      const result = await chatSession.sendMessage(userMessage);
+      const aiMessage = result.response.text();
+
+      // Remove the loading message
+      loadingMessage.remove();
+
+      // Add AI's response to chat
+      addMessage(aiMessage, 'ai');
+
+      // Save the updated chat to localStorage
+      saveChatToLocalStorage();
+    } catch (error) {
+      console.error('Error:', error);
+      // Remove loading message in case of error
+      loadingMessage.remove();
+      addMessage('Sorry, there was an error processing your message.', 'ai');
+    }
+  }
+
+  // Function to clear chat and localStorage
+  function clearChat() {
+    localStorage.removeItem('chatHistory');  // Clear chat from localStorage
+    chatContainer.innerHTML = '';  // Clear chat from the UI
+  }
+
+  // Event listeners
+  sendButton.addEventListener('click', sendMessage);
+  messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  clearButton.addEventListener('click', clearChat);
+
+  // Load saved chat history on page load
+  window.addEventListener('load', loadChatFromLocalStorage);
+
+</script>
+ 
+</body>
+</html>
