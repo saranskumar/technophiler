@@ -2,15 +2,26 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 exports.handler = async (event) => {
+  // Debugging logs
+  console.log("Incoming event:", JSON.stringify({
+    method: event.httpMethod,
+    path: event.path,
+    headers: event.headers,
+    body: event.body ? JSON.parse(event.body) : null
+  }, null, 2));
+
+  // Enhanced CORS headers (reusable)
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Methods": "POST, OPTIONS, GET"
+  };
+
   // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "POST, OPTIONS"
-      }
+      headers: corsHeaders
     };
   }
 
@@ -19,13 +30,18 @@ exports.handler = async (event) => {
       statusCode: 405,
       body: JSON.stringify({ error: "Method Not Allowed" }),
       headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+        ...corsHeaders,
+        "Content-Type": "application/json"
       }
     };
   }
 
   try {
+    // Validate API key
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("Gemini API key not configured");
+    }
+
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.0-flash",
@@ -37,21 +53,49 @@ exports.handler = async (event) => {
       }
     });
 
-    const { message, chatHistory = [] } = JSON.parse(event.body);
+    // Parse and validate body
+    if (!event.body) {
+      throw new Error("Request body is missing");
+    }
+
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(event.body);
+    } catch (e) {
+      throw new Error("Invalid JSON body");
+    }
+
+    const { message, chatHistory = [] } = parsedBody;
     
     if (!message?.trim()) {
       throw new Error("Message cannot be empty");
     }
 
+    // Validate chat history structure
+    if (!Array.isArray(chatHistory)) {
+      throw new Error("chatHistory must be an array");
+    }
+
     // Start chat with history if available
     const chat = model.startChat({
-      history: chatHistory.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-      }))
+      history: chatHistory.map(msg => {
+        if (!msg.sender || !msg.text) {
+          throw new Error("Invalid chat history format");
+        }
+        return {
+          role: msg.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        };
+      })
     });
 
-    const result = await chat.sendMessage(message);
+    // Add timeout for the API call
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    const result = await chat.sendMessage(message, { signal: controller.signal });
+    clearTimeout(timeout);
+    
     const response = await result.response;
     const text = response.text();
 
@@ -66,21 +110,31 @@ exports.handler = async (event) => {
         ]
       }),
       headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+        ...corsHeaders,
+        "Content-Type": "application/json"
       }
     };
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Full Error:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+
+    const statusCode = error.message.includes("API key") ? 401 : 
+                      error.message.includes("JSON") ? 400 : 
+                      error.name === "AbortError" ? 504 : 500;
+
     return {
-      statusCode: 500,
+      statusCode,
       body: JSON.stringify({ 
-        error: error.message || "Internal Server Error"
+        error: error.message || "Internal Server Error",
+        ...(process.env.NODE_ENV === "development" && { stack: error.stack })
       }),
       headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+        ...corsHeaders,
+        "Content-Type": "application/json"
       }
     };
   }
