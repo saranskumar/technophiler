@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     try {
       console.log('Sending message to function');
-      const response = await fetch('/netlify/functions/gemini-proxy', {
+      const response = await fetch('/.netlify/functions/gemini-proxy', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
