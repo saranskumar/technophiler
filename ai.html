@@ -129,16 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatContainer = document.getElementById('chat-container');
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-button');
-  
-  // Create clear button if it doesn't exist
-  let clearButton = document.getElementById('clear-button');
-  if (!clearButton) {
-    clearButton = document.createElement('button');
-    clearButton.id = 'clear-button';
-    clearButton.textContent = 'Clear Chat';
-    clearButton.classList.add('btn', 'btn-secondary', 'mt-2', 'ms-2');
-    document.querySelector('.inputs').appendChild(clearButton);
-  }
 
   // Enhanced message styling
   function addMessage(message, sender) {
@@ -150,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
       'p-3', 
       'rounded-4',
       'shadow-sm',
-      ...(sender === 'user' ? ['bg-primary', 'text-white', 'ms-auto'] : ['bg-light', 'me-auto'])
+      ...(sender === 'user' ? ['user-message'] : ['ai-message'])
     );
     bubble.style.maxWidth = '80%';
     bubble.style.wordBreak = 'break-word';
@@ -179,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadingElement.classList.add('d-flex', 'mb-3');
     
     const loadingBubble = document.createElement('div');
-    loadingBubble.classList.add('p-3', 'rounded-4', 'bg-light', 'me-auto');
+    loadingBubble.classList.add('p-3', 'rounded-4', 'ai-message');
     loadingBubble.style.maxWidth = '80%';
     
     const spinner = document.createElement('div');
@@ -209,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .filter(el => el.id !== 'loading-message')
       .map(el => ({
         text: el.textContent.replace('AI is thinking...', '').trim(),
-        sender: el.querySelector('.bg-primary') ? 'user' : 'ai',
+        sender: el.querySelector('.user-message') ? 'user' : 'ai',
         time: new Date().toISOString()
       }));
     localStorage.setItem('chatHistory', JSON.stringify(messages));
@@ -278,25 +268,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Get current chat history from DOM
-
-function getCurrentChatHistory() {
-  return Array.from(chatContainer.querySelectorAll('.d-flex'))
-    .filter(el => el.id !== 'loading-message')
-    // Skip the first message if it's from AI
-    .filter((el, index) => !(index === 0 && !el.querySelector('.bg-primary')))
-    .map(el => ({
-      sender: el.querySelector('.bg-primary') ? 'user' : 'ai',
-      text: el.textContent.replace('AI is thinking...', '').trim()
-    }));
-}
-
-  // Clear chat with confirmation
-  function clearChat() {
-    if (chatContainer.children.length > 0 && confirm('Clear all chat history?')) {
-      chatContainer.innerHTML = '';
-      localStorage.removeItem('chatHistory');
-      addMessage("Chat cleared. How can I help you now?", 'ai');
-    }
+  function getCurrentChatHistory() {
+    return Array.from(chatContainer.querySelectorAll('.d-flex'))
+      .filter(el => el.id !== 'loading-message')
+      // Skip the first message if it's from AI
+      .filter((el, index) => !(index === 0 && !el.querySelector('.user-message')))
+      .map(el => ({
+        sender: el.querySelector('.user-message') ? 'user' : 'ai',
+        text: el.textContent.replace('AI is thinking...', '').trim()
+      }));
   }
 
   // Event listeners with better UX
@@ -308,8 +288,6 @@ function getCurrentChatHistory() {
       sendMessage();
     }
   });
-
-  clearButton.addEventListener('click', clearChat);
   
   // Input validation
   messageInput.addEventListener('input', () => {
@@ -321,6 +299,5 @@ function getCurrentChatHistory() {
   messageInput.focus();
 });
 </script>
- 
 </body>
 </html>
