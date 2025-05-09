@@ -76,18 +76,17 @@ exports.handler = async (event) => {
       throw new Error("chatHistory must be an array");
     }
 
-    // Start chat with history if available
-    const chat = model.startChat({
-      history: chatHistory.map(msg => {
-        if (!msg.sender || !msg.text) {
-          throw new Error("Invalid chat history format");
-        }
-        return {
-          role: msg.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        };
-      })
-    });
+   // Inside your exports.handler, modify the chat history preparation:
+
+const chat = model.startChat({
+  history: chatHistory
+    // Filter out the initial AI greeting if it's first
+    .filter((msg, index) => !(index === 0 && msg.sender === 'ai'))
+    .map(msg => ({
+      role: msg.sender === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }]
+    }))
+});
 
     // Add timeout for the API call
     const controller = new AbortController();

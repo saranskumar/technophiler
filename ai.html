@@ -278,14 +278,17 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Get current chat history from DOM
-  function getCurrentChatHistory() {
-    return Array.from(chatContainer.querySelectorAll('.d-flex'))
-      .filter(el => el.id !== 'loading-message')
-      .map(el => ({
-        sender: el.querySelector('.bg-primary') ? 'user' : 'ai',
-        text: el.textContent.replace('AI is thinking...', '').trim()
-      }));
-  }
+
+function getCurrentChatHistory() {
+  return Array.from(chatContainer.querySelectorAll('.d-flex'))
+    .filter(el => el.id !== 'loading-message')
+    // Skip the first message if it's from AI
+    .filter((el, index) => !(index === 0 && !el.querySelector('.bg-primary')))
+    .map(el => ({
+      sender: el.querySelector('.bg-primary') ? 'user' : 'ai',
+      text: el.textContent.replace('AI is thinking...', '').trim()
+    }));
+}
 
   // Clear chat with confirmation
   function clearChat() {
