@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && echo 'Build complete'"
+  command = "cd netlify/functions && npm install && cd ../.. && echo 'Build complete'"
   publish = "."
 
 [[plugins]]
@@ -7,4 +7,5 @@
 
 [functions]
   directory = "netlify/functions"
+  external_node_modules = ["@google/generative-ai"]
   node_bundler = "esbuild"
