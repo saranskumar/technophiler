@@ -126,9 +126,70 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Immediately show the contact section (override main.js behavior)
+  const contactSection = document.getElementById('ai');
+  if (contactSection) {
+    contactSection.classList.add('section-show');
+  }
+
+  // Set the contact link as active
+  const navLinks = document.querySelectorAll('#navbar .nav-link');
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#ai' || 
+        link.getAttribute('href').endsWith('ai.html')) {
+      link.classList.add('active');
+    }
+  });
+
+  // Modify the navbar click handler specifically for the contact page
+  const navbar = document.getElementById('navbar');
+  if (navbar) {
+    navbar.addEventListener('click', function(e) {
+      const navLink = e.target.closest('.nav-link');
+      if (navLink) {
+        // If clicking on Contact link while already on contact page
+        if (navLink.getAttribute('href') === '#ai' || 
+            navLink.getAttribute('href').endsWith('ai.html')) {
+          e.preventDefault();
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+        // For mobile, close the navbar after click
+        if (navbar.classList.contains('navbar-mobile')) {
+          navbar.classList.remove('navbar-mobile');
+          const navbarToggle = document.querySelector('.mobile-nav-toggle');
+          if (navbarToggle) {
+            navbarToggle.classList.toggle('bi-list');
+            navbarToggle.classList.toggle('bi-x');
+          }
+        }
+      }
+    });
+  }
+
+  // Ensure header is in the correct state
+  const header = document.getElementById('header');
+  if (header) {
+    header.classList.add('header-top');
+  }
+
+  // Chat functionality
   const chatContainer = document.getElementById('chat-container');
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-button');
+  
+  // Create clear button
+  const clearButton = document.createElement('button');
+  clearButton.id = 'clear-button';
+  clearButton.innerHTML = '<i class="bi bi-trash"></i> Clear Chat';
+  clearButton.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'd-flex', 'align-items-center', 'gap-2');
+  
+  // Insert clear button before input area
+  const inputsContainer = document.querySelector('.inputs');
+  inputsContainer.parentNode.insertBefore(clearButton, inputsContainer);
 
   // Enhanced message styling
   function addMessage(message, sender) {
@@ -169,21 +230,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // New function to format AI messages
+  // Format AI messages
   function formatMessage(text) {
-    // Convert markdown-like syntax to HTML
     return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **bold**
-      .replace(/\*(.*?)\*/g, '<em>$1</em>') // *italic*
-      .replace(/_(.*?)_/g, '<u>$1</u>') // _underline_
-      .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>') // ```code```
-      .replace(/`(.*?)`/g, '<code>$1</code>') // `inline code`
-      .replace(/\n\*\s(.*?)(?=\n|$)/g, '<li>$1</li>') // * list items
-      .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>') // wrap lists
-      .replace(/\n/g, '<br>'); // line breaks
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/_(.*?)_/g, '<u>$1</u>')
+      .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      .replace(/\n\*\s(.*?)(?=\n|$)/g, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
   }
 
-  // Enhanced loading indicator
+  // Loading indicator
   function addLoadingMessage() {
     const loadingElement = document.createElement('div');
     loadingElement.classList.add('d-flex', 'mb-3');
@@ -213,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return loadingElement;
   }
 
-  // Save chat with timestamps
+  // Save chat history
   function saveChatToLocalStorage() {
     const messages = Array.from(chatContainer.querySelectorAll('.d-flex'))
       .filter(el => el.id !== 'loading-message')
@@ -225,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('chatHistory', JSON.stringify(messages));
   }
 
-  // Load chat with welcome message if empty
+  // Load chat history
   function loadChatFromLocalStorage() {
     const savedMessages = JSON.parse(localStorage.getItem('chatHistory'));
     if (savedMessages?.length > 0) {
@@ -235,12 +295,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Enhanced send function with better error handling
+  // Send message function
   async function sendMessage() {
     const userMessage = messageInput.value.trim();
     if (!userMessage) return;
 
-    // Add user message and clear input
     addMessage(userMessage, 'user');
     messageInput.value = '';
     sendButton.disabled = true;
@@ -249,7 +308,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingElement = addLoadingMessage();
 
     try {
-      console.log('Sending message to function');
       const response = await fetch('/.netlify/functions/gemini-proxy', {
         method: 'POST',
         headers: { 
@@ -262,22 +320,18 @@ document.addEventListener('DOMContentLoaded', function() {
         })
       });
 
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Response data:', data);
-
       loadingElement.remove();
       const aiMessage = data.response || "I didn't get a response.";
       addMessage(aiMessage, 'ai');
       saveChatToLocalStorage();
       
     } catch (error) {
-      console.error('Full error:', error);
+      console.error('Error:', error);
       loadingElement.remove();
       addMessage(`Error: ${error.message || 'Failed to process request'}`, 'ai');
     } finally {
@@ -287,11 +341,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Get current chat history from DOM
+  // Get chat history from DOM
   function getCurrentChatHistory() {
     return Array.from(chatContainer.querySelectorAll('.d-flex'))
       .filter(el => el.id !== 'loading-message')
-      // Skip the first message if it's from AI
       .filter((el, index) => !(index === 0 && !el.querySelector('.user-message')))
       .map(el => ({
         sender: el.querySelector('.user-message') ? 'user' : 'ai',
@@ -299,8 +352,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }));
   }
 
-  // Event listeners with better UX
+  // Clear chat function
+  function clearChat() {
+    if (chatContainer.children.length > 0 && confirm('Clear all chat history?')) {
+      chatContainer.innerHTML = '';
+      localStorage.removeItem('chatHistory');
+      addMessage("Chat cleared. How can I help you now?", 'ai');
+    }
+  }
+
+  // Event listeners
   sendButton.addEventListener('click', sendMessage);
+  clearButton.addEventListener('click', clearChat);
   
   messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -309,7 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Input validation
   messageInput.addEventListener('input', () => {
     sendButton.disabled = messageInput.value.trim() === '';
   });
@@ -319,5 +381,36 @@ document.addEventListener('DOMContentLoaded', function() {
   messageInput.focus();
 });
 </script>
+
+<style>
+  /* Clear button styles */
+  #clear-button {
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    border-color: #dc3545;
+    color: #dc3545;
+  }
+  
+  #clear-button:hover {
+    background-color: #dc3545;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  }
+  
+  #clear-button i {
+    font-size: 0.9rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    #clear-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+
 </body>
 </html>
