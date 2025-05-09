@@ -844,10 +844,12 @@ section .container {
 .user-message {
   background-color: #6d30bd;
   margin-left: auto;
+  border-radius: 18px;
 }
 
 .ai-message {
   background-color: #0fb5c8;
+  border-radius: 18px;
   margin-right: auto;
 }
 
@@ -859,3 +861,41 @@ section .container {
   border-radius: 4px;
   margin-bottom: 10px;
 }
+
+
+.ai-message strong {
+    font-weight: bold;
+    color: #f8f9fa;
+  }
+  
+  .ai-message em {
+    font-style: italic;
+  }
+  
+  .ai-message u {
+    text-decoration: underline;
+  }
+  
+  .ai-message ul {
+    padding-left: 20px;
+    margin: 10px 0;
+    list-style-type: disc;
+  }
+  
+  .ai-message li {
+    margin-bottom: 5px;
+  }
+  
+  .ai-message pre {
+    background-color: #2d2d2d;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+  
+  .ai-message code {
+    font-family: monospace;
+    background-color: #2d2d2d;
+    padding: 2px 4px;
+    border-radius: 3px;
+    

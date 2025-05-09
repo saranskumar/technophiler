@@ -152,7 +152,13 @@ document.addEventListener('DOMContentLoaded', function() {
       bubble.prepend(icon);
     }
     
-    bubble.textContent = message;
+    // Format message content (only for AI messages)
+    if (sender === 'ai') {
+      bubble.innerHTML = formatMessage(message);
+    } else {
+      bubble.textContent = message;
+    }
+    
     messageElement.appendChild(bubble);
     chatContainer.appendChild(messageElement);
     
@@ -161,6 +167,20 @@ document.addEventListener('DOMContentLoaded', function() {
       top: chatContainer.scrollHeight,
       behavior: 'smooth'
     });
+  }
+
+  // New function to format AI messages
+  function formatMessage(text) {
+    // Convert markdown-like syntax to HTML
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **bold**
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // *italic*
+      .replace(/_(.*?)_/g, '<u>$1</u>') // _underline_
+      .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>') // ```code```
+      .replace(/`(.*?)`/g, '<code>$1</code>') // `inline code`
+      .replace(/\n\*\s(.*?)(?=\n|$)/g, '<li>$1</li>') // * list items
+      .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>') // wrap lists
+      .replace(/\n/g, '<br>'); // line breaks
   }
 
   // Enhanced loading indicator
