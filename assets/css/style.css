@@ -899,3 +899,13 @@ section .container {
     padding: 2px 4px;
     border-radius: 3px;
   }
+  @media (max-width: 768px) {
+  .clear-text {
+    display: none; /* Hide text on mobile, show only icon */
+  }
+  
+  .mobile-clear-btn {
+    padding: 5px 8px !important;
+    min-width: auto !important;
+  }
+}

@@ -26,6 +26,76 @@
 
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
+
+  <style>
+  /* Mobile Full-screen Chat */
+  @media (max-width: 768px) {
+    #ai {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 0;
+      margin: 0;
+      z-index: 1000;
+      background: #1a1a1a; /* Match your dark theme */
+    }
+    
+    #chat-container {
+      height: calc(100vh - 120px) !important;
+      max-height: none !important;
+      padding: 15px;
+    }
+    
+    .inputs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 15px;
+      background: #1a1a1a;
+      border-top: 1px solid #333;
+    }
+    
+    #message-input {
+      width: calc(100% - 50px);
+    }
+    
+    /* Smaller clear button */
+    #clear-button {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    
+    #clear-button i {
+      font-size: 0.7rem !important;
+    }
+    
+    /* Adjust header for mobile */
+    #header {
+      display: none; /* Hide header in chat view */
+    }
+    
+    /* Optional: Add close button for mobile */
+    .mobile-close-chat {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1001;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+</style>
+
 </head>
 
 <body>
@@ -127,6 +197,33 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Immediately show the contact section (override main.js behavior)
+  // Add mobile close button (optional)
+if (window.innerWidth <= 768) {
+  const closeButton = document.createElement('button');
+  closeButton.className = 'mobile-close-chat';
+  closeButton.innerHTML = '<i class="bi bi-x-lg"></i>';
+  closeButton.onclick = () => window.history.back();
+  document.body.appendChild(closeButton);
+}
+
+// Handle mobile view changes
+function handleMobileView() {
+  if (window.innerWidth <= 768) {
+    document.body.style.overflow = 'hidden';
+    document.getElementById('header').style.display = 'none';
+  } else {
+    document.body.style.overflow = '';
+    document.getElementById('header').style.display = '';
+    const closeBtn = document.querySelector('.mobile-close-chat');
+    if (closeBtn) closeBtn.remove();
+  }
+}
+
+// Initial check
+handleMobileView();
+
+// Handle window resize
+window.addEventListener('resize', handleMobileView);
   const contactSection = document.getElementById('ai');
   if (contactSection) {
     contactSection.classList.add('section-show');
@@ -181,12 +278,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const messageInput = document.getElementById('message-input');
   const sendButton = document.getElementById('send-button');
   
-  // Create clear button
+ // Modify your existing clear button creation code to:
   const clearButton = document.createElement('button');
-  clearButton.id = 'clear-button';
-  clearButton.innerHTML = '<i class="bi bi-trash"></i> Clear Chat';
-  clearButton.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'd-flex', 'align-items-center', 'gap-2');
-  
+ clearButton.id = 'clear-button';
+ clearButton.innerHTML = '<i class="bi bi-trash"></i> <span class="clear-text">Clear Chat</span>';
+ clearButton.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'd-flex', 'align-items-center', 'gap-2', 'mobile-clear-btn');
+
   // Insert clear button before input area
   const inputsContainer = document.querySelector('.inputs');
   inputsContainer.parentNode.insertBefore(clearButton, inputsContainer);
